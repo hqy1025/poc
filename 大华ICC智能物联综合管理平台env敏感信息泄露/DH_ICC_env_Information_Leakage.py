@@ -20,7 +20,7 @@ def banner():
                                                                                        __/ |     
                                                                                       |___/                                                                
                                                                      version:DH_ICC_env_Information_Leakage 1.0
-                                                                     Author: Laow🚦
+                                                                     Author: hqy
 '''
     print(text)
 def main():
